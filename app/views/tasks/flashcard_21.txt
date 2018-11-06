@@ -1,0 +1,342 @@
+1) Write the code of the restaurants#edit action?
+
+class RestaurantsController < ApplicationController
+  def edit
+    @restaurant = Restaurant.find(params[:id])
+  end
+end
+
+2) What is the route for restaurants#new (including the right prefix)?
+
+# config/routes.rb
+Rails.application.routes.draw do
+  [...]
+  get "/restaurants/new", to: "restaurants#new", as: :new_restaurant
+  [...]
+end
+
+3) What is the route for restaurants#show (including the right prefix)?
+
+# config/routes.rb
+Rails.application.routes.draw do
+  [...]
+  get "/restaurants/:id", to: "restaurants#show", as: :restaurant
+  [...]
+end
+
+4) What are the 7 CRUD actions?
+
+index    # Read all resources
+show     # Read one resource
+
+new      # display form for a resource creation
+create   # Create resource
+
+edit     # display form for a resource update
+update   # Update resource
+
+destroy  # Delete resource
+
+5) What are the 2 files created by Rails' model generator?
+
+The migration file to create corresponding table in the DB,
+The model itself model_name.rb containing the class ModelName.
+
+6) How does form_for know if we want to create or update our @restaurant?
+
+It depends on the @restaurant passed to the form_for.
+
+If @restaurant.id.nil?, form_for knows we want to create one and will generate:
+
+<form action="/restaurants" method="post">
+  <input type="text" name="restaurant[name]" />
+  <input type="text" name="restaurant[address]" />
+  <input type="number" name="restaurant[stars]" />
+  <input type="submit" value="Create restaurant" />
+</form>
+If @restaurant has an id it will generate (example given for a restaurant with the id 3 and its values):
+
+<form action="/restaurants/3" method="post">
+  <input type="text" name="restaurant[name]" value="One Fine Restaurant" />
+  <input type="text" name="restaurant[address]" value="1 avenue des Champs Elysees" />
+  <input type="number" name="restaurant[stars]" value=3 />
+  <input type="submit" value="Update restaurant" />
+</form>
+
+7) How can we refactor our form_for used in new.html.erb and edit.html.erb?
+
+We can create a partial _form.html.erb in our views/restaurants folder and render it in our templates.
+
+<!-- app/views/restaurants/_form.html.erb -->
+<%= form_for(@restaurant) do |f| %>
+  <%= f.label :name %>
+  <%= f.text_field :name %>
+  <%= f.label :address %>
+  <%= f.text_field :address %>
+  <%= f.submit %>
+<% end %>
+<!-- app/views/restaurants/new.html.erb -->
+<%= render 'form' %>
+<!-- app/views/restaurants/edit.html.erb -->
+<%= render 'form' %>
+
+8) How do you refactor the @restaurant = Restaurant.find(params[:id]) called 4 times in your controller?
+
+# app/controllers/restaurants_controller.rb
+class RestaurantsController < ApplicationController
+  def show
+    @restaurant = Restaurant.find(params[:id])
+    # ...
+  end
+  def edit
+    @restaurant = Restaurant.find(params[:id])
+    # ...
+  end
+  def update
+    @restaurant = Restaurant.find(params[:id])
+    # ...
+  end
+  def destroy
+    @restaurant = Restaurant.find(params[:id])
+    # ...
+  end
+end
+
+With a before_action filter.
+
+# app/controllers/restaurants_controller.rb
+class RestaurantsController < ApplicationController
+  before_action :set_restaurant, only: [:show, :edit, :update, :destroy]
+
+  def show
+    # ...
+  end
+  def edit
+    # ...
+  end
+  def update
+    # ...
+  end
+  def destroy
+    # ...
+  end
+
+  private
+
+  def set_restaurant
+    @restaurant = Restaurant.find(params[:id])
+  end
+end
+
+9) How do you generate a migration in Rails?
+
+With rails generate migration MigrationName (in your terminal).
+
+rails generate migration AddAddressToRestaurants address:string
+
+10) Write the code of the restaurants#create action?
+
+# app/controllers/restaurants_controller.rb
+class RestaurantsController < ApplicationController
+  def create
+    restaurant = Restaurant.create(restaurant_params)
+    redirect_to restaurant_path(restaurant)
+  end
+
+  [...]
+
+  private
+
+  def restaurant_params
+    params.require(:restaurant).permit(:name, :address, :stars)
+  end
+end
+
+Don't forget to whitelist the fields your users can act on with strong params.
+
+
+11) What rails db tasks do you know in Rails?
+
+rails db:drop - Drops the database (lose all your data!)
+rails db:create - Creates the database with an empty schema
+rails db:migrate - Runs pending migrations on the database schema
+rails db:seed - Runs seeds.rb file
+rails db:rollback - Revert the last migration
+rails db:reset - Drops database + replays all migration + runs seed
+
+12) What is the route for restaurants#edit (including the right prefix)?
+
+# config/routes.rb
+Rails.application.routes.draw do
+  [...]
+  get "/restaurants/:id/edit", to: "restaurants#edit", as: :edit_restaurant
+  [...]
+end
+
+13) Where can you crash test your model?
+
+In rails console. Just type rails console or rails c in your terminal, this will open irb, load your models and establish a connection to your local (development) DB.
+
+14) Write the code of the restaurants#index action?
+
+# app/controllers/restaurants_controller.rb
+class RestaurantsController < ApplicationController
+  def index
+    @restaurants = Restaurant.all
+  end
+end
+
+15)Write the code of the restaurants#show action?
+
+# app/controllers/restaurants_controller.rb
+class RestaurantsController < ApplicationController
+  def show
+    @restaurant = Restaurant.find(params[:id])
+  end
+end
+
+16) How do you execute pending migrations?
+
+In your terminal, run the following:
+
+rails db:migrate
+
+17)What is the route for restaurants#create?
+
+# config/routes.rb
+Rails.application.routes.draw do
+  [...]
+  post "/restaurants", to: "restaurants#create"
+  [...]
+end
+Note that the url is the same as for restaurants#index, no need to repeat the prefix here (:restaurants).
+
+18) Write the code of the restaurants#update action?
+
+# app/controllers/restaurants_controller.rb
+class RestaurantsController < ApplicationController
+  def update
+    restaurant = Restaurant.find(params[:id])
+    restaurant.update(restaurant_params)
+    redirect_to restaurant_path(restaurant)
+  end
+
+  [...]
+
+  private
+
+  def restaurant_params
+    params.require(:restaurant).permit(:name, :address, :stars)
+  end
+end
+
+19) Write a form_for to create or update a restaurant (name, address and stars)?
+
+<%= form_for(@restaurant) do |f| %>
+  <%= f.label :name %>
+  <%= f.text_field :name %>
+
+  <%= f.label :address %>
+  <%= f.text_field :address %>
+
+  <%= f.label :stars %>
+  <%= f.number_field :stars %>
+
+  <%= f.submit %>
+<% end %>
+It's the same code for create and update! Based on the @restaurant passed to the form_for, the <form> generated won't be the same!
+
+20) In routes.rb, what's the shortcut for the 7 CRUD routes?
+
+It's resources.
+
+# config/routes.rb
+Rails.application.routes.draw do
+  resources :restaurants
+end
+
+21) What is the route for restaurants#destroy?
+
+# config/routes.rb
+Rails.application.routes.draw do
+  [...]
+  delete "/restaurants/:id", to: "restaurants#destroy"
+end
+Note that the url is the same as for restaurants#show, no need to repeat the prefix here (:restaurant).
+
+22) What is the route for restaurants#index (including the right prefix)?
+
+# config/routes.rb
+Rails.application.routes.draw do
+  get "/restaurants", to: "restaurants#index", as: :restaurants
+  [...]
+end
+
+23) What is the route for restaurants#update?
+
+# config/routes.rb
+Rails.application.routes.draw do
+  [...]
+  patch "/restaurants/:id", to: "restaurants#update"
+  [...]
+end
+Note that the url is the same as for restaurants#show, no need to repeat the prefix here (:restaurant).
+
+24) How can you revert a rails g model Something?
+
+With rails destroy model.
+
+rails destroy model Something
+
+25) How do you generate a model in Rails?
+
+With rails generate model ModelName (in your terminal).
+
+rails generate model Restaurant name:string stars:integer
+
+26) What can you run in rails c to load last changes in your model(s) without exiting and re-entering in your console?
+
+You can run reload!.
+
+27) How do you generate a subset of the 7 CRUD routes using resources?
+
+With only:.
+
+# config/routes.rb
+Rails.application.routes.draw do
+  resources :restaurants, only: [:index, :show]
+end
+
+28) Write the code of the restaurants#new action?
+
+# app/controllers/restaurants_controller.rb
+class RestaurantsController < ApplicationController
+  def new
+    @restaurant = Restaurant.new
+    # you need to give an empty shell to your form_for!
+  end
+end
+
+29) You can start a Rails Console in Sandbox mode with:
+
+rails c --sandbox
+How is that different than without the --sandbox flag?
+
+It's a console where you can test your models without affecting your (development) DB. On exit, every change (create/update/delete) is rollbacked thanks to a database transaction.
+
+30) Write the code of the restaurants#destroy action?
+
+# app/controllers/restaurants_controller.rb
+class RestaurantsController < ApplicationController
+  def destroy
+    # fetch restaurant to destroy from DB
+    restaurant = Restaurant.find(params[:id])
+
+    # destroy record
+    restaurant.destroy
+
+    # redirect to index
+    redirect_to restaurants_path
+  end
+end
+
